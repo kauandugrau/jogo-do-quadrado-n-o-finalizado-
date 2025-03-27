@@ -7,10 +7,25 @@ let gameOver = false;
 let pontuacao = 0;
 let pontuacaoMaxima = localStorage.getItem('pontuacaoMaxima') || 0;
 
-document.addEventListener('keypress', (evento) => {
+document.addEventListener('keydown', (evento) => {
     if (evento.code === 'Space' && !personagem.pulando) {
         personagem.velocidade_y = 15;
         personagem.pulando = true;
+    }
+    if (evento.code === 'KeyA') {
+        personagem.movendoEsquerda = true;
+    }
+    if (evento.code === 'KeyD') {
+        personagem.movendoDireita = true;
+    }
+});
+
+document.addEventListener('keyup', (evento) => {
+    if (evento.code === 'KeyA') {
+        personagem.movendoEsquerda = false;
+    }
+    if (evento.code === 'KeyD') {
+        personagem.movendoDireita = false;
     }
 });
 
@@ -20,32 +35,51 @@ let personagem = {
     largura: 50,
     altura: 50,
     velocidade_y: 0,
-    pulando: false
+    velocidade_x: 5,  
+    pulando: false,
+    movendoEsquerda: false,
+    movendoDireita: false,
+    imagem: new Image()
 };
+
+personagem.imagem.src = './personagem.jpg';
 
 let obstaculo = {
     x: canvas.width - 100,
     y: canvas.height - 100,
     largura: 30,
-    altura: 100,
-    velocidade_x: -3 // Velocidade de movimento do obstáculo
+    altura: Math.random() * 150 + 50, 
+    velocidade_x: -3
 };
 
 function desenharPersonagem() {
-    ctx.fillStyle = 'black';
-    ctx.fillRect(personagem.x, personagem.y, personagem.largura, personagem.altura);
+    ctx.drawImage(personagem.imagem, personagem.x, personagem.y, personagem.largura, personagem.altura);
 }
 
 function atualizaPersonagem() {
+    if (personagem.movendoEsquerda) {
+        personagem.x -= personagem.velocidade_x;
+    }
+    if (personagem.movendoDireita) {
+        personagem.x += personagem.velocidade_x;
+    }
+
     if (personagem.pulando) {
         personagem.y -= personagem.velocidade_y;
         personagem.velocidade_y -= gravidade;
     }
 
-    if (personagem.y >= canvas.height - 50) {
-        personagem.y = canvas.height - 50;
+    if (personagem.y >= canvas.height - personagem.altura) {
+        personagem.y = canvas.height - personagem.altura;
         personagem.velocidade_y = 0;
         personagem.pulando = false;
+    }
+
+    if (personagem.x < 0) {
+        personagem.x = 0;
+    }
+    if (personagem.x + personagem.largura > canvas.width) {
+        personagem.x = canvas.width - personagem.largura;
     }
 }
 
@@ -61,10 +95,8 @@ function atualizarObstaculo() {
         if (obstaculo.x + obstaculo.largura < 0) {
             obstaculo.x = canvas.width;
             obstaculo.velocidade_x -= 1;
-            obstaculo.altura = Math.random() * 150 , 90;
+            obstaculo.altura = Math.random() * 150 + 50;
             pontuacao++; 
-            
-        
         }
     }
 }
@@ -103,6 +135,7 @@ function verificaColisao() {
 function reiniciarJogo() {
     gameOver = false;
     personagem.y = canvas.height - 50;
+    personagem.x = 100;
     personagem.velocidade_y = 0;
     obstaculo.x = canvas.width - 100;
     obstaculo.velocidade_x = -3;
